@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strings"
 )
 
 type point struct {
-	x int
-	y int
+	x float64
+	y float64
 }
 
 type color struct {
@@ -131,18 +132,52 @@ func render(canvases []canvas) {
 	}
 }
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+
+	return x
+}
+func swap(p0 *point, p1 *point) {
+	p0.x, p1.x = p1.x, p0.x
+	p0.y, p1.y = p1.y, p0.y
+}
+
 func (c canvas) drawLine(p0 point, p1 point) {
-	a := (p1.y - p0.y) / (p1.x - p0.x)
-	b := p0.y - a*p0.x
-	for x := p0.x; x <= p1.x; x++ {
-		y := a*x + b
-		c.putPixel(x, y, color{255, 0, 0})
+	dx := p1.x - p0.x
+	dy := p1.y - p0.y
+
+	// If there are more different values for x than y, the line is more horizontal than vertical
+	if math.Abs(dx) > math.Abs(dy) {
+		if p0.x > p1.x {
+			swap(&p0, &p1)
+		}
+		a := dy / dx
+		y := p0.y
+		for x := p0.x; x <= p1.x; x++ {
+			c.putPixel(int(x), int(y), color{255, 0, 0})
+			y = y + a
+		}
+
+	} else {
+		if p0.y > p1.y {
+			swap(&p0, &p1)
+		}
+		a := dx / dy
+		x := p0.x
+		for y := p0.y; y <= p1.y; y++ {
+			fmt.Println(x, y)
+			c.putPixel(int(x), int(y), color{0, 255, 0})
+			x = x + a
+		}
 	}
 }
 
 func main() {
 	c := canvas{}
-	c = c.init(200, 200)
-	c.drawLine(point{1, 1}, point{50, 50})
+	c = c.init(500, 500)
+	c.drawLine(point{-200, -100}, point{240, 120})
+	c.drawLine(point{-50, -200}, point{60, 240})
 	render([]canvas{c})
 }
