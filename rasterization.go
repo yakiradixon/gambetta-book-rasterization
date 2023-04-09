@@ -158,7 +158,7 @@ func interpolate(i0, d0, i1, d1 float64) []float64 {
 	return values
 }
 
-func (c canvas) drawLine(p0 point, p1 point) {
+func (c canvas) drawLine(p0 point, p1 point, color color) {
 	dx := p1.x - p0.x
 	dy := p1.y - p0.y
 
@@ -169,7 +169,7 @@ func (c canvas) drawLine(p0 point, p1 point) {
 		}
 		ys := interpolate(p0.x, p0.y, p1.x, p1.y)
 		for x := p0.x; x <= p1.x; x++ {
-			c.putPixel(int(x), int(ys[int(x - p0.x)]), color{255, 0, 0})
+			c.putPixel(int(x), int(ys[int(x-p0.x)]), color)
 		}
 
 	} else {
@@ -178,15 +178,22 @@ func (c canvas) drawLine(p0 point, p1 point) {
 		}
 		xs := interpolate(p0.y, p0.x, p1.y, p1.x)
 		for y := p0.y; y <= p1.y; y++ {
-			c.putPixel(int(xs[int(y - p0.y)]), int(y), color{0, 255, 0})
+			c.putPixel(int(xs[int(y-p0.y)]), int(y), color)
 		}
 	}
 }
 
+func (c canvas) drawWireFrameTriangle(p0, p1, p2 point, color color) {
+	c.drawLine(p0, p1, color)
+	c.drawLine(p1, p2, color)
+	c.drawLine(p2, p0, color)
+}
+
 func main() {
 	c := canvas{}
-	c = c.init(500, 500)
-	c.drawLine(point{-200, -100}, point{240, 120})
-	c.drawLine(point{-50, -200}, point{60, 240})
+	c = c.init(600, 600)
+	// c.drawLine(point{-200, -100}, point{240, 120}, color{255, 0, 0})
+	// c.drawLine(point{-50, -200}, point{60, 240}, color{0, 255, 0})
+	c.drawWireFrameTriangle(point{-200, -250}, point{200, 50}, point{20, 250}, color{255, 0, 0})
 	render([]canvas{c})
 }
