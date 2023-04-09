@@ -5,6 +5,8 @@ import (
 	"math"
 	"os"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 type point struct {
@@ -189,11 +191,46 @@ func (c canvas) drawWireFrameTriangle(p0, p1, p2 point, color color) {
 	c.drawLine(p2, p0, color)
 }
 
+func (c canvas) drawFilledTriangle(p0, p1, p2 point, color color) {
+	if p1.y < p0.y {
+		swap(&p1, &p0)
+	}
+	if p2.y < p0.y {
+		swap(&p2, &p0)
+	}
+	if p2.y < p2.y {
+		swap(&p2, &p1)
+	}
+	x01 := interpolate(p0.y, p0.x, p1.y, p1.x)
+	x12 := interpolate(p1.y, p1.x, p2.y, p2.x)
+	x02 := interpolate(p0.y, p0.x, p2.y, p2.x)
+	x01 = x01[:len(x01)-1]
+	x012 := append(x01, x12...)
+
+	m := len(x012) / 2
+	xLeft := []float64{}
+	xRight := []float64{}
+	if x02[m] < x012[m] {
+		xLeft = slices.Clone(x02)
+		xRight = slices.Clone(x012)
+	} else {
+		xLeft = slices.Clone(x012)
+		xRight = slices.Clone(x02)
+	}
+
+	for y := p0.y; y <= p2.y; y++ {
+		for x := xLeft[int(y-p0.y)]; x <= xRight[int(y-p0.y)]; x++ {
+			c.putPixel(int(x), int(y), color)
+		}
+	}
+}
+
 func main() {
 	c := canvas{}
 	c = c.init(600, 600)
 	// c.drawLine(point{-200, -100}, point{240, 120}, color{255, 0, 0})
 	// c.drawLine(point{-50, -200}, point{60, 240}, color{0, 255, 0})
-	c.drawWireFrameTriangle(point{-200, -250}, point{200, 50}, point{20, 250}, color{255, 0, 0})
+	c.drawWireFrameTriangle(point{-200, -250}, point{200, 50}, point{20, 250}, color{0, 0, 0})
+	c.drawFilledTriangle(point{-200, -250}, point{200, 50}, point{20, 250}, color{0, 255, 0})
 	render([]canvas{c})
 }
