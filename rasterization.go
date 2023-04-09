@@ -144,6 +144,20 @@ func swap(p0 *point, p1 *point) {
 	p0.y, p1.y = p1.y, p0.y
 }
 
+func interpolate(i0, d0, i1, d1 float64) []float64 {
+	values := []float64{}
+	if i0 == i1 {
+		return []float64{d0}
+	}
+	a := (d1 - d0) / (i1 - i0)
+	d := d0
+	for i := i0; i <= i1; i++ {
+		values = append(values, d)
+		d = d + a
+	}
+	return values
+}
+
 func (c canvas) drawLine(p0 point, p1 point) {
 	dx := p1.x - p0.x
 	dy := p1.y - p0.y
@@ -153,23 +167,18 @@ func (c canvas) drawLine(p0 point, p1 point) {
 		if p0.x > p1.x {
 			swap(&p0, &p1)
 		}
-		a := dy / dx
-		y := p0.y
+		ys := interpolate(p0.x, p0.y, p1.x, p1.y)
 		for x := p0.x; x <= p1.x; x++ {
-			c.putPixel(int(x), int(y), color{255, 0, 0})
-			y = y + a
+			c.putPixel(int(x), int(ys[int(x - p0.x)]), color{255, 0, 0})
 		}
 
 	} else {
 		if p0.y > p1.y {
 			swap(&p0, &p1)
 		}
-		a := dx / dy
-		x := p0.x
+		xs := interpolate(p0.y, p0.x, p1.y, p1.x)
 		for y := p0.y; y <= p1.y; y++ {
-			fmt.Println(x, y)
-			c.putPixel(int(x), int(y), color{0, 255, 0})
-			x = x + a
+			c.putPixel(int(xs[int(y - p0.y)]), int(y), color{0, 255, 0})
 		}
 	}
 }
