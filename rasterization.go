@@ -21,6 +21,12 @@ type color struct {
 	b float64
 }
 
+type vertex struct {
+	x float64
+	y float64
+	z float64
+}
+
 func split(s string) (string, string) {
 	i := strings.LastIndex(s[:70], " ")
 	return strings.TrimSpace(s[:i]), strings.TrimSpace(s[i:])
@@ -281,6 +287,18 @@ func multiplyColor(v float64, c color) color {
 	return color{v * c.r, v * c.g, v * c.b}
 }
 
+func (c canvas) toViewport(p point) point {
+	viewportSize := 1.0
+	return point{x: p.x * float64(c.width) / viewportSize,
+		y: p.y * float64(c.height) / viewportSize,
+		h: 1.0}
+}
+
+func (c canvas) projectVertex(v vertex) point {
+	projectionPlaneZ := 1.0
+	return c.toViewport(point{x: v.x * projectionPlaneZ / v.z, y: v.y * projectionPlaneZ / v.z, h: 1.0})
+}
+
 func main() {
 	c := canvas{}
 	c = c.init(600, 600)
@@ -288,6 +306,39 @@ func main() {
 	// c.drawLine(point{-50, -200}, point{60, 240}, color{0, 255, 0})
 	//c.drawWireFrameTriangle(point{-200, -250}, point{200, 50}, point{20, 250}, color{0, 0, 0})
 	// c.drawFilledTriangle(point{-200, -250}, point{200, 50}, point{20, 250}, color{0, 255, 0})
-	c.drawShadedTriangle(point{-200, -250, 0.3}, point{200, 50, 0.1}, point{20, 250, 1.0}, color{0, 255, 0})
+	// c.drawShadedTriangle(point{-200, -250, 0.3}, point{200, 50, 0.1}, point{20, 250, 1.0}, color{0, 255, 0})
+	// c.drawShadedTriangle(point{-150, -50, 0.5}, point{-10, 50, 0.1}, point{20, 200, 0.9}, color{255, 255, 0})
+	// c.drawShadedTriangle(point{0, 0, 0.9}, point{0, 130, 0.1}, point{20, 299, 0.9}, color{255, 0, 0})
+	// render([]canvas{c})
+
+	vA := vertex{-2, -0.5, 5}
+	vB := vertex{-2, 0.5, 5}
+	vC := vertex{-1, 0.5, 5}
+	vD := vertex{-1, -0.5, 5}
+
+	vAb := vertex{-2, -0.5, 6}
+	vBb := vertex{-2, 0.5, 6}
+	vCb := vertex{-1, 0.5, 6}
+	vDb := vertex{-1, -0.5, 6}
+
+	red := color{255, 0, 0}
+	green := color{0, 255, 0}
+	blue := color{0, 0, 255}
+
+	c.drawLine(c.projectVertex(vA), c.projectVertex(vB), blue)
+	c.drawLine(c.projectVertex(vB), c.projectVertex(vC), blue)
+	c.drawLine(c.projectVertex(vC), c.projectVertex(vD), blue)
+	c.drawLine(c.projectVertex(vD), c.projectVertex(vA), blue)
+
+	c.drawLine(c.projectVertex(vAb), c.projectVertex(vBb), red)
+	c.drawLine(c.projectVertex(vBb), c.projectVertex(vCb), red)
+	c.drawLine(c.projectVertex(vCb), c.projectVertex(vDb), red)
+	c.drawLine(c.projectVertex(vDb), c.projectVertex(vAb), red)
+
+	c.drawLine(c.projectVertex(vA), c.projectVertex(vAb), green)
+	c.drawLine(c.projectVertex(vB), c.projectVertex(vBb), green)
+	c.drawLine(c.projectVertex(vC), c.projectVertex(vCb), green)
+	c.drawLine(c.projectVertex(vD), c.projectVertex(vDb), green)
 	render([]canvas{c})
+
 }
